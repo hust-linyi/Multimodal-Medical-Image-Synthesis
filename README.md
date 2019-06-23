@@ -4,6 +4,8 @@ This is the official repo for "Bi-modality Medical Image Synthesis using Semi-su
 ## Requirements
     1. python 2.7
     2. tensorflow 1.7.0
+    3. opencv-python
+    4. numpy
 
 ## Usage
 ### Clone the repository
