@@ -9,6 +9,6 @@ This is the official repo for "Bi-modality Medical Image Synthesis using Semi-su
 
 ## Usage
 ### Clone the repository
-    git@github.com:hust-linyi/Multimodal-Medical-Image-Synthesis.git
-    cd Multimodal-Medical-Image-Synthesis
+    $ git@github.com:hust-linyi/Multimodal-Medical-Image-Synthesis.git
+    $ cd Multimodal-Medical-Image-Synthesis
 
