@@ -43,7 +43,7 @@ else:
     split_real_data_t2 = tf.split(0, len(DEVICES), all_real_data_t2)
     split_z = tf.split(0, len(DEVICES), z)
 
-gen1_costs, gen2_costs, dc1_costs, dc2_costs, l2_adc_costs, l2_t2_costs = [], [], [], [], [], []
+gen1_costs, gen2_costs, dc1_costs, dc2_costs, l1_adc_costs, l1_t2_costs = [], [], [], [], [], []
 for device_index, (device, data_adc, data_t2, data_z) in \
         enumerate(zip(DEVICES, split_real_data_adc, split_real_data_t2, split_z)):
     with tf.device(device):
@@ -113,22 +113,22 @@ for device_index, (device, data_adc, data_t2, data_z) in \
         gen2_costs.append(gen2_loss)
         dc1_costs.append(dc1_loss)
         dc2_costs.append(dc2_loss)
-        l2_adc_costs.append(l1_adc_loss)
-        l2_t2_costs.append(l1_t2_loss)
+        l1_adc_costs.append(l1_adc_loss)
+        l1_t2_costs.append(l1_t2_loss)
 
 gen1_cost = tf.add_n(gen1_costs) / len(DEVICES)
 gen2_cost = tf.add_n(gen2_costs) / len(DEVICES)
 dc1_cost = tf.add_n(dc1_costs) / len(DEVICES)
 dc2_cost = tf.add_n(dc2_costs) / len(DEVICES)
-l2_adc_cost = tf.add_n(l2_adc_costs) / len(DEVICES)
-l2_t2_cost = tf.add_n(l2_t2_costs) / len(DEVICES)
+l1_adc_cost = tf.add_n(l1_adc_costs) / len(DEVICES)
+l1_t2_cost = tf.add_n(l1_t2_costs) / len(DEVICES)
 
 tf.summary.scalar("D1 Loss", dc1_cost)
 tf.summary.scalar("D2 Loss", dc2_cost)
 tf.summary.scalar("Gen1 Loss", gen1_cost)
 tf.summary.scalar("Gen2 Loss", gen2_cost)
-tf.summary.scalar("L2 adc Loss", l2_adc_cost)
-tf.summary.scalar("L2 t2 Loss", l2_t2_cost)
+tf.summary.scalar("l1 adc Loss", l1_adc_cost)
+tf.summary.scalar("l1 t2 Loss", l1_t2_cost)
 summary_op = tf.summary.merge_all()
 
 t_vars = tf.trainable_variables()
@@ -155,13 +155,13 @@ gen2_train_op = tf.train.AdamOptimizer(learning_rate=learning_rate,
                                        beta1=0.,
                                        beta2=0.9).minimize(gen2_cost,
                                                            var_list=g2_var, colocate_gradients_with_ops=True)
-l2_adc_train_op = tf.train.AdamOptimizer(learning_rate=learning_rate,
+l1_adc_train_op = tf.train.AdamOptimizer(learning_rate=learning_rate,
                                        beta1=0.,
-                                       beta2=0.9).minimize(l2_adc_cost,
+                                       beta2=0.9).minimize(l1_adc_cost,
                                                            var_list=g1_var, colocate_gradients_with_ops=True)
-l2_t2_train_op = tf.train.AdamOptimizer(learning_rate=learning_rate,
+l1_t2_train_op = tf.train.AdamOptimizer(learning_rate=learning_rate,
                                        beta1=0.,
-                                       beta2=0.9).minimize(l2_t2_cost,
+                                       beta2=0.9).minimize(l1_t2_cost,
                                                            var_list=g2_var, colocate_gradients_with_ops=True)
 
 
@@ -223,22 +223,22 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
 
         if i % 3 == 0:
             sess.run(gen1_train_op, feed_dict={all_real_data_adc: _data_adc, z: z_real_dist})
-            sess.run(l2_adc_train_op, feed_dict={all_real_data_adc: _data_adc, z: z_real_dist})
+            sess.run(l1_adc_train_op, feed_dict={all_real_data_adc: _data_adc, z: z_real_dist})
             for j in range(2):
                 sess.run(gen2_train_op, feed_dict={all_real_data_adc: _data_adc, all_real_data_t2: _data_t2, z: z_real_dist})
-                sess.run(l2_t2_train_op, feed_dict={all_real_data_adc: _data_adc, all_real_data_t2: _data_t2, z: z_real_dist})
+                sess.run(l1_t2_train_op, feed_dict={all_real_data_adc: _data_adc, all_real_data_t2: _data_t2, z: z_real_dist})
 
         if i % 50 == 0:
-            _dc1_loss, _dc2_loss, _gen1_loss, _gen2_loss, _l2_adc_loss, _l2_t2_loss, summary = sess.run(
-                [dc1_cost, dc2_cost, gen1_cost, gen2_cost, l2_adc_cost, l2_t2_cost, summary_op],
+            _dc1_loss, _dc2_loss, _gen1_loss, _gen2_loss, _l1_adc_loss, _l1_t2_loss, summary = sess.run(
+                [dc1_cost, dc2_cost, gen1_cost, gen2_cost, l1_adc_cost, l1_t2_cost, summary_op],
                 feed_dict={all_real_data_adc: _data_adc, all_real_data_t2: _data_t2, z: z_real_dist})
             print("iteration:{}".format(i))
             print("D1  Loss={}".format(_dc1_loss))
             print("D2  Loss={}".format(_dc2_loss))
             print("G1  Loss={}".format(_gen1_loss))
             print("G2  Loss={}".format(_gen2_loss))
-            print("L2 ADC  Loss={}".format(_l2_adc_loss))
-            print("G2 T2 Loss={}".format(_l2_t2_loss))
+            print("l1 ADC  Loss={}".format(_l1_adc_loss))
+            print("G2 T2 Loss={}".format(_l1_t2_loss))
             writer.add_summary(summary, global_step=i)
 
         if i> 20000 and i % 1000 == 0:
