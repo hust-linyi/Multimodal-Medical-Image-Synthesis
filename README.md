@@ -1,4 +1,4 @@
-# Multimodal-Medical-Image-Synthesis
+# Bi-Modality-Medical-Image-Synthesis
 This is the official repo for "Bi-modality Medical Image Synthesis using Semi-supervised Sequential Generative Adversarial Networks". For more details please refer to our [paper](https://www.ncbi.nlm.nih.gov/pubmed/31217133). Please cite the paper in your publications if you find the source code useful to your research.
 
 ## Requirements
